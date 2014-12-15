@@ -21,11 +21,13 @@ RUN echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/
   && apt-get update -qq \
   && apt-get install -qqy lxc-docker
 
-# Install the magic wrapper.
+# Install the magic docker wrapper and sshd startup script
 ADD ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
 EXPOSE 22 2375
-CMD ["/usr/local/bin/entrypoint.sh"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/usr/sbin/sshd", "-D"]
