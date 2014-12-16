@@ -84,4 +84,4 @@ popd >/dev/null
 rm -rf /var/run/docker.pid
 
 docker -d -H 0.0.0.0:2375 -H unix:///var/run/docker.sock $DOCKER_DAEMON_ARGS &> /var/log/docker.log &
-exec "$@"
+exec /usr/sbin/sshd -D

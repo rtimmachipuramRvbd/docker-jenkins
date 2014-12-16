@@ -23,6 +23,10 @@ RUN echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/
 
 RUN gpasswd -a jenkins docker
 
+ADD build-essentials.sh  /opt/install/build-essentials.sh
+RUN chmod +x  /opt/install/build-essentials.sh
+RUN . /opt/install/build-essentials.sh
+
 # Install the magic docker wrapper and sshd startup script
 ADD ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
@@ -31,5 +35,4 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 VOLUME /var/lib/docker
 EXPOSE 22 2375
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/usr/local/bin/entrypoint.sh"]
