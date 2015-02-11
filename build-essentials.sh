@@ -1,2 +1,5 @@
 apt-get update -qq && apt-get install -y \
-pxz
+pxz \
+build-essential \
+pbuilder \
+git
