@@ -14,6 +14,7 @@ RUN mkdir -p /var/run/sshd
 
 RUN adduser --quiet jenkins
 RUN echo "jenkins:jenkins" | chpasswd
+RUN echo "jenkins ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/jenkins
 
 # Install Docker from Docker Inc. repositories.
 RUN echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list \
