@@ -4,4 +4,5 @@ build-essential \
 pbuilder \
 git \
 dh-make \
-dh-make-perl
+dh-make-perl \
+pbuilder-scripts
