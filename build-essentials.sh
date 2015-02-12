@@ -5,4 +5,5 @@ pbuilder \
 git \
 dh-make \
 dh-make-perl \
-pbuilder-scripts
+pbuilder-scripts \
+ubuntu-dev-tools
