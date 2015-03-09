@@ -6,4 +6,9 @@ git \
 dh-make \
 dh-make-perl \
 pbuilder-scripts \
-ubuntu-dev-tools
+ubuntu-dev-tools \
+libncurses5-dev \
+zlib1g-dev \
+gawk \
+subversion \
+libssl-dev
