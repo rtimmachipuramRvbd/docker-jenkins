@@ -11,4 +11,5 @@ libncurses5-dev \
 zlib1g-dev \
 gawk \
 subversion \
-libssl-dev
+libssl-dev \
+libxml-parser-perl
