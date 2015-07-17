@@ -42,15 +42,8 @@ RUN wget http://dl.google.com/android/android-sdk_r24.3.2-linux.tgz; \
 ENV ANDROID_HOME /usr/local/bin/android-sdk
 ENV PATH $PATH:$ANDROID_HOME/tools
 ENV PATH $PATH:$ANDROID_HOME/platform-tools
-# 1- Android SDK Tools, revision 24.3.3
-# 2- Android SDK Platform-tools, revision 22
-# 3
-# 1,2,3,4,5,6,7,24,26,100,101
-#Update android-libs
-#RUN expect -c 'set timeout -1;spawn android - update sdk -u -a -t  1, 2, 3, 5, 6, 7, 24, 26, 100, 101;expect {"Do you accept the #license" { exp_send "y\r" ; exp_continue }    eof}'
 
-#RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter 4
-
+#Update android-libs and other dependencies
 RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter 139; \
 	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter 140; \
 	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter build-tools-21.1.2; \
@@ -58,12 +51,8 @@ RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --
 	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter extra-google-m2repository
 RUN apt-get install -y --no-install-recommends g++-multilib lib32z1
 
-
-
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
 EXPOSE 22 2375
 
 CMD ["/usr/local/bin/entrypoint.sh"]
-
-
