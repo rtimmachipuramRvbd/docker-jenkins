@@ -32,6 +32,25 @@ RUN . /opt/install/build-essentials.sh
 ADD ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Downloading android-sdk
+RUN wget http://dl.google.com/android/android-sdk_r24.3.2-linux.tgz; \
+    tar zxvf android-sdk_r24.3.2-linux.tgz; \
+    mv android-sdk-linux /usr/local/bin/android-sdk ; \
+    rm android-sdk_r24.3.2-linux.tgz
+
+#Add env-variables
+ENV ANDROID_HOME /usr/local/bin/android-sdk
+ENV PATH $PATH:$ANDROID_HOME/tools
+ENV PATH $PATH:$ANDROID_HOME/platform-tools
+
+#Update android-libs and other dependencies
+RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter 139; \
+	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter 140; \
+	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --no-ui --all --filter build-tools-21.1.2; \
+	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter platform-tools,android-21; \
+	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter extra-google-m2repository
+RUN apt-get install -y --no-install-recommends g++-multilib lib32z1
+
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
 EXPOSE 22 2375
