@@ -32,6 +32,10 @@ RUN . /opt/install/build-essentials.sh
 ADD ./entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Install Docker/Compose buildscript
+ADD docker-build.pl /usr/local/bin/docker-build
+RUN chmod +x /usr/local/bin/docker-build
+
 # Downloading android-sdk
 RUN wget http://dl.google.com/android/android-sdk_r24.3.2-linux.tgz; \
     tar zxvf android-sdk_r24.3.2-linux.tgz; \
