@@ -26,7 +26,7 @@ RUN gpasswd -a jenkins docker
 
 ADD build-essentials.sh  /opt/install/build-essentials.sh
 RUN chmod +x  /opt/install/build-essentials.sh
-RUN . /opt/install/build-essentials.sh
+RUN /opt/install/build-essentials.sh
 
 # Install the magic docker wrapper and sshd startup script
 ADD ./entrypoint.sh /usr/local/bin/entrypoint.sh
