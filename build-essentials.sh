@@ -1,3 +1,4 @@
+#!/bin/bash
 set -ex
 set -o pipefail
 
@@ -18,7 +19,6 @@ subversion \
 libssl-dev \
 libfile-slurp-perl \
 libipc-system-simple-perl \
-libgetopt-long-perl \
 libxml-parser-perl
 
 # Install docker-compose
