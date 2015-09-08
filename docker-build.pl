@@ -90,6 +90,9 @@ $dir  = dirname($file);
 # Login to registry
 docker_login() if $registry;
 
+# Load upstream image?
+docker_load() if $replace_from;
+
 # Docker-Compose?
 if ( $file =~ /\.yml$/ ) {
   my $c = LoadFile($file);
@@ -144,6 +147,25 @@ sub docker_login {
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);
   die "Failed to login to registry" unless $EXITVAL == 0;
+}
+
+sub docker_load {
+  say ":: Loading upstream Docker image ...";
+
+  my $fp_meta = abs_path($dir.'/'.FOLDER_UPSTREAM.'/'.FILE_META);
+  my $meta = LoadFile($fp_meta) or die "Failed to read upstream build meta data: ".$fp_meta;
+  die "Failed to find build meta data for upstream image '".$replace_from."': ".$fp_meta unless $meta->{$replace_from}{id};
+
+  my $cmd = "docker load < ".$dir.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file};
+  print_cmd($cmd);
+  my @output = capture(EXIT_ANY, $cmd);
+  print_output(@output);
+  die "Failed to load upstream image" unless $EXITVAL == 0;
+
+  my $dockerignore = '';
+  read_file($dir.'/.dockerignore') if -r $dir.'/.dockerignore';
+  $dockerignore .= "\n".FOLDER_UPSTREAM.'/*'."\n";
+  write_file($dir.'/.dockerignore', { binmode => ':utf8' }, $dockerignore);
 }
 
 sub replace_from {
