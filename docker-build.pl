@@ -31,7 +31,7 @@ my $file;
 my $path;
 my $image;
 my $registry;
-my $tag;
+my @tags;
 my $replace_from;
 
 # Read CLI options
@@ -43,7 +43,7 @@ my $c = GetOptions(
   "push:1"         => \$push,
   "registry:s"     => \$registry,
   "replace-from:s" => \$replace_from,
-  "tag:s"          => \$tag,
+  "tag:s"          => \@tags,
   "quiet:1"        => \$quiet,
 ) or pod2usage(2);
 pod2usage(1) if $help;
@@ -52,7 +52,10 @@ pod2usage(1) if $help;
 $image //= $ENV{IMAGE_NAME};
 $path  //= $ENV{COMPOSEFILE}  // $ENV{DOCKERFILE};
 $org   //= $ENV{ORGANIZATION} // 'ocedo';
-$tag   //= $ENV{BUILD_NUMBER} // 'develop';
+unless ( @tags ) {
+  push @tags, $ENV{BUILD_NUMBER} if defined $ENV{BUILD_NUMBER};
+  push @tags, $ENV{BRANCH} // 'develop';
+}
 
 # Registry
 if ( $registry && $registry =~ /^([^:\@]+):([^:\@]+)\@([^:\@]+)$/ ) {
@@ -134,8 +137,10 @@ sub step {
   replace_from() if $replace_from;
   my $image_id   = docker_build();
   my $image_save = docker_save($image_id);
-  my $image_tag  = docker_tag($image_id, $push ? $registry->{name} : undef);
-  docker_push($image_id, $image_tag) if $push;
+  for ( @tags ) {
+    my $image_tag  = docker_tag($image_id, $_, $push ? $registry->{name} : undef);
+    docker_push($image_id, $image_tag) if $push;
+  }
 }
 
 sub docker_login {
@@ -192,7 +197,7 @@ sub docker_build {
   die "Docker file not found"            unless -r 'Dockerfile';
   die "Cannot build: Missing image name" unless    $image;
 
-  my $image_name = $org.'/'.$image.':'.$tag;
+  my $image_name = $org.'/'.$image;
 
   say ":: Building Image: ".$image_name." ...";
 
@@ -212,6 +217,7 @@ sub docker_build {
 
 sub docker_tag {
   my $image_id = shift;
+  my $tag      = shift;
   my $reg      = shift;
 
   my $image_tag  = ($reg ? $reg.'/' : '').$org.'/'.$image.':'.$tag;
@@ -254,7 +260,7 @@ sub docker_save {
   $meta->{$image} = {
     id   => $image_id,
     name => $image_name,
-    tag  => $tag,
+    tags => \@tags,
     file => $save_filename,
   };
   DumpFile($fp_meta, $meta) or die "Failed to save build meta data: '".$fp_meta."'";
