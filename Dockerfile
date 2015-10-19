@@ -54,6 +54,7 @@ RUN ( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk --
 	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter platform-tools,android-21; \
 	( sleep 5 && while [ 1 ]; do sleep 1; echo y; done ) | android update sdk -u --filter extra-google-m2repository
 RUN apt-get install -y --no-install-recommends g++-multilib lib32z1
+RUN chmod +x /usr/local/bin/android-sdk/tools/android
 
 # Define additional metadata for our image.
 VOLUME /var/lib/docker
