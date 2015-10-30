@@ -4,11 +4,8 @@ MAINTAINER Julian Klinck <git@lab10.de>
 RUN apt-get update -qq && apt-get install -y \
     apt-transport-https \
     ca-certificates \
-    lxc \
     iptables \
     openssh-server
-
-RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 
 RUN mkdir -p /var/run/sshd
 
@@ -17,10 +14,10 @@ RUN echo "jenkins:jenkins" | chpasswd
 RUN echo "jenkins ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/jenkins
 
 # Install Docker from Docker Inc. repositories.
-RUN echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list \
-  && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9 \
+RUN echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list \
+  && apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D \
   && apt-get update -qq \
-  && apt-get install -qqy lxc-docker
+  && apt-get install -qqy docker-engine
 
 RUN gpasswd -a jenkins docker
 
@@ -35,6 +32,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Install Docker/Compose buildscript
 ADD docker-build.pl /usr/local/bin/docker-build
 RUN chmod +x /usr/local/bin/docker-build
+
+RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 
 # Downloading android-sdk
 RUN wget http://dl.google.com/android/android-sdk_r24.3.2-linux.tgz; \
