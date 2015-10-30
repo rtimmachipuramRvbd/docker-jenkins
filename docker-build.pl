@@ -34,6 +34,9 @@ my $registry;
 my @tags;
 my $replace_from;
 
+# Defaults
+my $dockercmd = "docker -H 0.0.0.0:2376";
+
 # Read CLI options
 my $c = GetOptions(
   "help|?"         => \$help,
@@ -145,7 +148,7 @@ sub step {
 
 sub docker_login {
   say ":: Logging in to registry: ".$registry->{name};
-  my $cmd = "docker login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
+  my $cmd = $docker_cmd." login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
   my $pcmd = $cmd;
   $pcmd =~ s/-p \"[^\"]+\"/-p \"XYZ\"/;
   print_cmd($pcmd);
@@ -161,7 +164,7 @@ sub docker_load {
   my $meta = LoadFile($fp_meta) or die "Failed to read upstream build meta data: ".$fp_meta;
   die "Failed to find build meta data for upstream image '".$replace_from."': ".$fp_meta unless $meta->{$replace_from}{id};
 
-  my $cmd = "docker load < ".$dir.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file};
+  my $cmd = $dockercmd." load < ".$dir.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file};
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);
@@ -202,7 +205,7 @@ sub docker_build {
   say ":: Building Image: ".$image_name." ...";
 
   # Build image and fetch ID
-  my $cmd = "docker build --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ./";
+  my $cmd = $dockercmd." build --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ./";
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);
@@ -225,7 +228,7 @@ sub docker_tag {
   say ":: Tagging Image: ".$image_tag." (".$image_id.")";
 
   # Tag Image
-  my $cmd = "docker tag -f ".$image_id." ".$image_tag;
+  my $cmd = $dockercmd." tag -f ".$image_id." ".$image_tag;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);
@@ -247,7 +250,7 @@ sub docker_save {
   die "Saved Image '".$save_file."' already exists!" if -e $save_file;
 
   # Save Image
-  my $cmd = "docker save ".$image_id." | pxz -z -6 - > ".$save_file;
+  my $cmd = $dockercmd." save ".$image_id." | pxz -z -6 - > ".$save_file;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);
@@ -275,7 +278,7 @@ sub docker_push {
   say ":: Pushing Image: ".$image_tag." (".$image_id.")";
 
   # Push Image
-  my $cmd = "docker push ".$image_tag;
+  my $cmd = $dockercmd." push ".$image_tag;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd);
   print_output(@output);

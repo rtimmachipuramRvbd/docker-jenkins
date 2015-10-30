@@ -86,5 +86,5 @@ rm -rf /var/run/docker.pid
 # Workaround for https://github.com/jpetazzo/dind/issues/86
 rm -rf /var/lib/docker/btrfs
 
-docker -d -H 0.0.0.0:2375 -H unix:///var/run/docker.sock $DOCKER_DAEMON_ARGS &> /var/log/docker.log &
+docker -d -H 0.0.0.0:2376 -H unix:///var/run/docker.sock $DOCKER_DAEMON_ARGS &> /var/log/docker.log &
 exec /usr/sbin/sshd -D
