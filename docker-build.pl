@@ -148,7 +148,7 @@ sub step {
 
 sub docker_login {
   say ":: Logging in to registry: ".$registry->{name};
-  my $cmd = $docker_cmd." login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
+  my $cmd = $dockercmd." login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
   my $pcmd = $cmd;
   $pcmd =~ s/-p \"[^\"]+\"/-p \"XYZ\"/;
   print_cmd($pcmd);
