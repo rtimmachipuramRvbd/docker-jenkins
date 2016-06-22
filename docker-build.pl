@@ -33,9 +33,8 @@ my $nosave;
 my $registry;
 my @tags;
 my $replace_from;
-
-# Defaults
-my $dockercmd = "docker -H 0.0.0.0:2376";
+my @dockercmd;
+my @dockercmdp;
 
 # Read CLI options
 my $c = GetOptions(
@@ -48,6 +47,7 @@ my $c = GetOptions(
   "registry:s"     => \$registry,
   "replace-from:s" => \$replace_from,
   "tag:s"          => \@tags,
+  "dockercmd:s"    => \@dockercmdp,
   "quiet:1"        => \$quiet,
 ) or pod2usage(2);
 pod2usage(1) if $help;
@@ -60,6 +60,10 @@ unless ( @tags ) {
   push @tags, $ENV{BUILD_NUMBER} if defined $ENV{BUILD_NUMBER};
   push @tags, $ENV{BRANCH} // 'develop';
 }
+push @dockercmd, (
+  ($ENV{DOCKER_HOST} ? 'DOCKER_HOST="'.$ENV{DOCKER_HOST}.'"' : ''),
+  'docker',
+), @dockercmdp;
 
 # Registry
 if ( $registry && $registry =~ /^([^:\@]+):([^:\@]+)\@([^:\@]+)$/ ) {
@@ -180,7 +184,7 @@ sub step {
 
 sub docker_login {
   say ":: Logging in to registry: ".$registry->{name};
-  my $cmd = $dockercmd." login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
+  my $cmd = join(' ', @dockercmd)." login -e \"".$registry->{mail}."\" -u \"".$registry->{user}."\" -p \"".$registry->{pass}."\" ".$registry->{name};
   my $pcmd = $cmd;
   $pcmd =~ s/-p \"[^\"]+\"/-p \"XYZ\"/;
   print_cmd($pcmd);
@@ -196,7 +200,7 @@ sub docker_load {
   my $meta = LoadFile($fp_meta) or die "Failed to read upstream build meta data: ".$fp_meta;
   die "Failed to find build meta data for upstream image '".$replace_from."': ".$fp_meta unless $meta->{$replace_from}{id};
 
-  my $cmd = $dockercmd." load -i ".abs_path($iwd.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file});
+  my $cmd = join(' ', @dockercmd)." load -i ".abs_path($iwd.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file});
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
@@ -232,7 +236,7 @@ sub docker_build {
   say ":: Building Image: ".$image_name." ...";
 
   # Build image and fetch ID
-  my $cmd = $dockercmd." build --file=".$file." --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ".$iwd;
+  my $cmd = join(' ', @dockercmd)." build --file=".$file." --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ".$iwd;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
@@ -255,7 +259,7 @@ sub docker_tag {
   say ":: Tagging Image: ".$image_tag." (".$image_id.")";
 
   # Tag Image
-  my $cmd = $dockercmd." tag -f ".$image_id." ".$image_tag;
+  my $cmd = join(' ', @dockercmd)." tag -f ".$image_id." ".$image_tag;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
@@ -277,7 +281,7 @@ sub docker_save {
   die "Saved Image '".$save_file."' already exists!" if -e $save_file;
 
   # Save Image
-  my $cmd = $dockercmd." save ".$image_id." | pxz -z -6 - > ".$save_file;
+  my $cmd = join(' ', @dockercmd)." save ".$image_id." | pxz -z -6 - > ".$save_file;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
@@ -299,7 +303,7 @@ sub docker_push {
   say ":: Pushing Image: ".$image_tag." (".$image_id.")";
 
   # Push Image
-  my $cmd = $dockercmd." push ".$image_tag;
+  my $cmd = join(' ', @dockercmd)." push ".$image_tag;
   print_cmd($cmd);
   my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
