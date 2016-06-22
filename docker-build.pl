@@ -169,7 +169,7 @@ sub docker_login {
   my $pcmd = $cmd;
   $pcmd =~ s/-p \"[^\"]+\"/-p \"XYZ\"/;
   print_cmd($pcmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to login to registry" unless $EXITVAL == 0;
 }
@@ -183,7 +183,7 @@ sub docker_load {
 
   my $cmd = $dockercmd." load -i ".abs_path($iwd.'/'.FOLDER_UPSTREAM.'/'.$meta->{$replace_from}{file});
   print_cmd($cmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to load upstream image" unless $EXITVAL == 0;
 }
@@ -217,9 +217,9 @@ sub docker_build {
   say ":: Building Image: ".$image_name." ...";
 
   # Build image and fetch ID
-  my $cmd = $dockercmd." build --file=".$file." --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ./";
+  my $cmd = $dockercmd." build --file=".$file." --rm=true --force-rm=true --no-cache=true --tag=".$image_name." ".$iwd;
   print_cmd($cmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to build Image" unless $EXITVAL == 0;
   my $last_line = pop @output;
@@ -242,7 +242,7 @@ sub docker_tag {
   # Tag Image
   my $cmd = $dockercmd." tag -f ".$image_id." ".$image_tag;
   print_cmd($cmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to tag Image" unless $EXITVAL == 0;
 
@@ -264,7 +264,7 @@ sub docker_save {
   # Save Image
   my $cmd = $dockercmd." save ".$image_id." | pxz -z -6 - > ".$save_file;
   print_cmd($cmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to save Image" unless $EXITVAL == 0;
 
@@ -292,7 +292,7 @@ sub docker_push {
   # Push Image
   my $cmd = $dockercmd." push ".$image_tag;
   print_cmd($cmd);
-  my @output = capture(EXIT_ANY, $cmd);
+  my @output = capture(EXIT_ANY, $cmd.' 2>&1');
   print_output(@output);
   die "Failed to push Image" unless $EXITVAL == 0;
 }
@@ -323,8 +323,7 @@ docker-build.pl --image="foo" [options]
  Options:
    -?, --help
    --org="ocedo"
-   --path="./Dockerfile"
-   --path="/foo/bar"
+   --path="/project"
    --registry="user:pass@registry"
    --push
    --quiet
