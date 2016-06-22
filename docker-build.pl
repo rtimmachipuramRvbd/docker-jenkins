@@ -156,9 +156,9 @@ sub step {
 
   # Maintain .dockerignore
   my $dockerignore = '';
-  read_file('.dockerignore') if -r '.dockerignore';
+  read_file($iwd.'/.dockerignore') if -r $iwd.'/.dockerignore';
   $dockerignore .= "\n".FOLDER_UPSTREAM.'/*'."\n";
-  write_file('.dockerignore', { binmode => ':utf8' }, $dockerignore);
+  write_file($iwd.'/.dockerignore', { binmode => ':utf8' }, $dockerignore);
 
   replace_from() if $replace_from;
   my $image_id   = docker_build();
@@ -216,14 +216,14 @@ sub replace_from {
 
   my $image_id = $meta->{$replace_from}{id};
   my $dockerfile = read_file($file, { binmode => ':utf8' });
-  unless ( $dockerfile =~ m/FROM\s+(.*)/g ) {
+  unless ( $dockerfile =~ /^FROM\s+(.*)$/m ) {
     warn "Dockerfile has no FROM definition (wtf?)";
     return;
   }
 
   say ":: Modifying Dockerfile: FROM ".$1." -> ".$image_id." ...";
 
-  $dockerfile =~ s/FROM .*/FROM $image_id/g;
+  $dockerfile =~ s/^FROM\s+.*$/FROM $image_id/m;
   write_file($file, { binmode => ':utf8' }, $dockerfile);
 }
 
