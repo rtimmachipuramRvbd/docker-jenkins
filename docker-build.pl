@@ -29,6 +29,7 @@ my $org;
 my $iwd = getcwd();
 my $file;
 my $image;
+my $nosave;
 my $registry;
 my @tags;
 my $replace_from;
@@ -41,6 +42,7 @@ my $c = GetOptions(
   "help|?"         => \$help,
   "path:s"         => \$file,
   "image=s"        => \$image,
+  "nosave:1"       => \$nosave,
   "org:s"          => \$org,
   "push:1"         => \$push,
   "registry:s"     => \$registry,
@@ -156,7 +158,20 @@ sub step {
 
   replace_from() if $replace_from;
   my $image_id   = docker_build();
-  my $image_save = docker_save($image_id);
+
+  # Store meta data
+  my $fp_meta = $iwd.'/'.FILE_META;
+  my $meta   = -r $fp_meta ? LoadFile($fp_meta) : {};
+  die "Build meta data for Image '".$image."' already exists!" if $meta->{$image};
+  $meta->{$image} = {
+    id   => $image_id,
+    name => $org ? $org.'/'.$image : $image,
+    tags => \@tags,
+  };
+  DumpFile($fp_meta, $meta) or die "Failed to save build meta data: '".$fp_meta."'";
+
+  docker_save($image_id) unless $nosave;
+
   for ( @tags ) {
     my $image_tag  = docker_tag($image_id, $_, $push ? $registry->{name} : undef);
     docker_push($image_id, $image_tag) if $push;
@@ -270,14 +285,8 @@ sub docker_save {
 
   # Store meta data
   my $fp_meta = $iwd.'/'.FILE_META;
-  my $meta   = -r $fp_meta ? LoadFile($fp_meta) : {};
-  die "Build meta data for Image '".$image."' already exists!" if $meta->{$image};
-  $meta->{$image} = {
-    id   => $image_id,
-    name => $image_name,
-    tags => \@tags,
-    file => $save_filename,
-  };
+  my $meta = -r $fp_meta ? LoadFile($fp_meta) : {};
+  $meta->{$image}{file} = $save_filename;
   DumpFile($fp_meta, $meta) or die "Failed to save build meta data: '".$fp_meta."'";
 
   return $save_file;
@@ -350,6 +359,10 @@ Print (a)this) brief help message and exit.
 =item B<--org>
 
 Organization to use when tagging your image
+
+=item B<--nosave>
+
+Don't save/export image
 
 =item B<--path>
 
